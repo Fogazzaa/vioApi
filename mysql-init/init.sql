@@ -45,6 +45,23 @@ INSERT INTO `compra` VALUES (1,'2024-11-14 19:04:00',1),(2,'2024-11-13 17:00:00'
 UNLOCK TABLES;
 
 --
+-- Temporary view structure for view `compras_por_usuario`
+--
+
+DROP TABLE IF EXISTS `compras_por_usuario`;
+/*!50001 DROP VIEW IF EXISTS `compras_por_usuario`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `compras_por_usuario` AS SELECT 
+ 1 AS `usuario`,
+ 1 AS `evento`,
+ 1 AS `data_compra`,
+ 1 AS `tipo_ingresso`,
+ 1 AS `quantidade_vip`,
+ 1 AS `preco_total`*/;
+SET character_set_client = @saved_cs_client;
+
+--
 -- Table structure for table `evento`
 --
 
@@ -226,6 +243,24 @@ UNLOCK TABLES;
 --
 -- Dumping routines for database 'vio_vini'
 --
+
+--
+-- Final view structure for view `compras_por_usuario`
+--
+
+/*!50001 DROP VIEW IF EXISTS `compras_por_usuario`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`alunods`@`%` SQL SECURITY DEFINER */
+/*!50001 VIEW `compras_por_usuario` (`usuario`,`evento`,`data_compra`,`tipo_ingresso`,`quantidade_vip`,`preco_total`) AS select `u`.`name` AS `usuario`,`e`.`nome` AS `evento`,`c`.`data_compra` AS `data_compra`,`i`.`tipo` AS `tipo_ingresso`,sum((case when (`i`.`tipo` = 'vip') then `ic`.`quantidade` else 0 end)) AS `quantidadeVip`,round(sum((`ic`.`quantidade` * `i`.`preco`)),2) AS `preco_total` from ((((`usuario` `u` join `compra` `c` on((`u`.`id_usuario` = `c`.`fk_id_usuario`))) join `ingresso_compra` `ic` on((`c`.`id_compra` = `ic`.`fk_id_compra`))) join `ingresso` `i` on((`ic`.`fk_id_ingresso` = `i`.`id_ingresso`))) join `evento` `e` on((`i`.`fk_id_evento` = `e`.`id_evento`))) group by `u`.`name`,`e`.`nome`,`c`.`data_compra`,`i`.`tipo` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -236,4 +271,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-10  8:29:23
+-- Dump completed on 2025-03-10 10:52:10
