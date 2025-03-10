@@ -1,4 +1,4 @@
-module.exports = function validaterUser({
+module.exports = function validateUser({
   cpf,
   email,
   password,
@@ -8,11 +8,16 @@ module.exports = function validaterUser({
   if (!cpf || !email || !password || !name || !data_nascimento) {
     return { error: "Todos os campos devem ser preenchidos" };
   }
-  if (NaN(cpf) || cpf.length !== 11) {
-    return { error: "CPF inválido, deve conter 11 dígitos numéricos" };
+
+  if (isNaN(cpf) || cpf.length !== 11) {
+    return {
+      error: "CPF inválido. Deve conter exatamente 11 dígitos numéricos",
+    };
   }
+
   if (!email.includes("@")) {
-    return { error: "Email inválido, deve conter @" };
+    return { error: "Email inválido. Deve conter @" };
   }
-  return null; // Ou seja, se tudo estiver certo, eu retorno null, para passar o If na userController
+
+  return null; // Retorna null se não houver erro
 };
