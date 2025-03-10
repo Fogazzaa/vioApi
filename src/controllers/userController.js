@@ -26,16 +26,17 @@ module.exports = class userController {
             if (err.code === "ER_DUP_ENTRY") {
               if (err.message.includes("for key 'email'")) {
                 return res.status(400).json({ error: "Email já cadastrado" });
-              } else {
-                return res
-                  .status(500)
-                  .json({ error: "Erro interno do servidor", err });
               }
+            } else {
+              return res
+                .status(500)
+                .json({ error: "Erro interno do servidor", err });
             }
+          } else {
+            return res
+              .status(201)
+              .json({ message: "Usuário criado com sucesso" });
           }
-          return res
-            .status(201)
-            .json({ message: "Usuário criado com sucesso" });
         }
       );
     } catch (error) {
