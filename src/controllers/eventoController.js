@@ -22,7 +22,7 @@ module.exports = class eventoController {
       });
     } catch (error) {
       console.log("Erro ao executar consulta: ", error);
-      return res.status(500).json({ error: "Erro interno do servido" });
+      return res.status(500).json({ error: "Erro interno do servidor" });
     }
   } // fim do 'createEvento'
 
