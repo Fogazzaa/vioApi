@@ -24,13 +24,14 @@ module.exports = class userController {
         (err) => {
           if (err) {
             if (err.code === "ER_DUP_ENTRY") {
-              if (err.message.includes("for key 'email'")) {
+              if (err.message.includes("email")) {
                 return res.status(400).json({ error: "Email já cadastrado" });
-              } else {
-                return res
-                  .status(500)
-                  .json({ error: "Erro interno do servidor", err });
               }
+            } else {
+              console.log(err);
+              return res
+                .status(500)
+                .json({ error: "Erro interno do servidor", err });
             }
           }
           return res
@@ -62,7 +63,7 @@ module.exports = class userController {
     }
   }
   static async updateUser(req, res) {
-    const { cpf, email, password, name, id } = req.body;
+    const { cpf, email, password, name, data_nascimento, id } = req.body;
 
     const validationError = validateUser(req.body);
     if (validationError) {
@@ -75,18 +76,30 @@ module.exports = class userController {
         return res.status(400).json(cpfError);
       }
       const query =
-        "UPDATE usuario SET cpf = ?, email = ?, password = ?, name = ? WHERE id_usuario = ?";
-      connect.query(query, [cpf, email, password, name, id], (err, results) => {
-        if (err) {
-          return res.status(500).json({ error: "Erro interno do servidor" });
+        "UPDATE usuario SET cpf = ?, email = ?, password = ?, name = ? , data_nascimento=? WHERE id_usuario = ?";
+      connect.query(
+        query,
+        [cpf, email, password, name, data_nascimento, id],
+        (err, results) => {
+          if (err) {
+            if (err.code === "ER_DUP_ENTRY") {
+              if (err.message.includes("email")) {
+                return res.status(400).json({ error: "Email já cadastrado" });
+              }
+            } else {
+              return res
+                .status(500)
+                .json({ error: "Erro interno do servidor", err });
+            }
+          }
+          if (results.affectedRows === 0) {
+            return res.status(404).json({ error: "Usuário não encontrado" });
+          }
+          return res
+            .status(200)
+            .json({ message: "Usuário atualizado com sucesso" });
         }
-        if (results.affectedRows === 0) {
-          return res.status(404).json({ error: "Usuário não encontrado" });
-        }
-        return res
-          .status(200)
-          .json({ message: "Usuário atualizado com sucesso" });
-      });
+      );
     } catch (error) {
       return res.status(500).json({ error });
     }
