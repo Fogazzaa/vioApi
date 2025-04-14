@@ -1,4 +1,6 @@
 
+-- PROCEDURE: Pode alterar o estado do banco de dados e pode ter parâmetros de entrada e saída.
+
 -- Cria procedure para registrar uma compra de ingresso
 
 DELIMITER //
@@ -52,28 +54,68 @@ END; //
 
 DELIMITER ;
 
+-- Cria procedure para mostrar o resumo de um usuário
+
+DELIMITER //
+
+CREATE PROCEDURE resumo_usuario(IN pid INT)
+BEGIN
+    DECLARE nome VARCHAR(100);
+    DECLARE email VARCHAR(100);
+    DECLARE total_reais DECIMAL(10,2);
+    DECLARE faixa VARCHAR(20);
+
+    -- Busca o nome e o email do usuário
+
+    SELECT u.name, u.email INTO nome, email
+    FROM usuario u
+    WHERE u.id_usuario = pid;
+
+    -- Chama as funções para calcular a idade e o total gasto
+
+    SET faixa = faixa_etaria((SELECT data_nascimento FROM usuario WHERE id_usuario = pid));
+    SET total_reais = calcula_total_gasto(pid);
+
+    -- Mostra 
+
+    SELECT nome AS nome_usuario,
+    email AS email_usuario,
+    faixa AS faixa_etaria,
+    total_reais AS total_gasto
+    FROM DUAL; -- Retorna os dados em uma tabela temporária
+
+END; //
+
+DELIMITER ;
+
 -- Mostra as procedures criadas
 
 SHOW PROCEDURE STATUS WHERE db = 'vio_vini';
 
 -- Testa as procedures criadas --
 
--- Testa a procedure total_ingressos_usuario
+-- Testa a procedure total_ingressos_usuario, e mostra o total de ingressos comprados por um usuário
 
 SET @numero_ingressos_usuario = 0;
 CALL total_ingressos_usuario(1, @numero_ingressos_usuario);
 SELECT @numero_ingressos_usuario AS total_ingressos;
 
--- Testa a procedure registrar_compra
+-- Testa a procedure registrar_compra, e registra uma compra de ingresso
 
 CALL registrar_compra(2, 1, 2);
 
--- Testa a procedure registrar_presenca
+-- Testa a procedure registrar_presenca, e  registra a presença de um usuário em um evento
 
 CALL registrar_presenca(2, 1);
+
+-- Testa a procedure resumo_usuario, e mostra o resumo de um usuário
+
+CALL resumo_usuario(2);
 
 -- Deleta as procedures criadas
 
 DROP PROCEDURE IF EXISTS total_ingressos_usuario;
 DROP PROCEDURE IF EXISTS registrar_compra;
 DROP PROCEDURE IF EXISTS registrar_presenca;
+DROP PROCEDURE IF EXISTS calcula_total_gasto;
+DROP PROCEDURE IF EXISTS resumo_usuario;

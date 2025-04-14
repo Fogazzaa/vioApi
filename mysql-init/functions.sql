@@ -1,4 +1,8 @@
 
+-- DETERMINISTIC: A função sempre retorna o mesmo resultado para os mesmos parâmetros de entrada.
+-- NOT DETERMINISTIC: A função pode retornar resultados diferentes para os mesmos parâmetros de entrada.
+-- FUNCTION: Não altera o estado do banco de dados, apenas lê os dados.
+
 CREATE TABLE log_evento (
     id_log INT AUTO_INCREMENT PRIMARY KEY,
     mensage VARCHAR(255),
@@ -119,8 +123,12 @@ BEGIN
         RETURN 'Adolescente';
     ELSEIF idade >= 18 AND idade < 60 THEN
         RETURN 'Adulto';
-    ELSE
+    ELSEIF idade >= 60 AND idade < 100 THEN
         RETURN 'Idoso';
+    ELSEIF idade IS NULL THEN
+        RETURN 'Idade não informada';
+    ELSE
+        RETURN 'Idade Inválida';
     END IF;
 END; $$
 
@@ -139,6 +147,49 @@ BEGIN
     SELECT AVG(calcula_idade(data_nascimento)) INTO media
     FROM usuario;
     RETURN IFNULL(media, 0);
+END; $$
+
+DELIMITER ;
+
+-- Exercício: Cálculo do total gasto por um usuário
+
+DELIMITER $$
+
+CREATE FUNCTION calcula_total_gasto(pid_usuario INT)
+RETURNS DECIMAL(10,2)
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE total DECIMAL(10,2);
+    SELECT SUM(i.preco * ic.quantidade) INTO total
+    FROM ingresso_compra ic
+    JOIN compra c ON ic.fk_id_compra = c.id_compra
+    JOIN ingresso i ON ic.fk_id_ingresso = i.id_ingresso
+    WHERE c.fk_id_usuario = pid_usuario;
+    RETURN IFNULL (total, 0);
+END; $$
+
+DELIMITER ;
+
+-- Busca a faixa etária de um usuário
+
+DELIMITER $$
+
+CREATE FUNCTION buscar_faixa_etaria_usuario(pid INT)
+RETURNS VARCHAR(30)
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE faixa VARCHAR(50);
+    DECLARE nascimento DATE;
+    SELECT data_nascimento INTO nascimento
+    FROM usuario
+    WHERE id_usuario = pid;
+    SET faixa = faixa_etaria(nascimento);
+    IF faixa IS NULL THEN
+        SET faixa = 'Faixa etária não encontrada';
+    END IF;
+    RETURN faixa;
 END; $$
 
 DELIMITER ;
@@ -168,27 +219,27 @@ FROM usuario;
 
 SELECT status_sistema();
 
--- Testa a function total_compras_usuario
+-- Testa a function total_compras_usuario, e calcula o total de compras de um usuário específico
 
 SELECT total_compras_usuario(1) AS total_compras_usuario;
 
--- Testa a function registrar_log_evento
+-- Testa a function registrar_log_evento, e registra um log de evento
 
 SELECT registrar_log_evento('Teste de log de evento') AS resultado_log_evento;
 
--- Testa a function mensagem_boas_vindas
+-- Testa a function mensagem_boas_vindas, e exibe uma mensagem de boas-vindas ao usuário
 
 SELECT mensagem_boas_vindas('Vini') AS mensagem_bem_vindo;
 
--- Testa a function is_maior_idade
+-- Testa a function is_maior_idade, e verifica se um usuário é maior de idade
 
 SELECT is_maior_idade('2005-01-01') AS maior_idade;
 
--- Testa a function faixa_etaria
+-- Testa a function faixa_etaria, e verifica a faixa etária de um usuário específico
 
 SELECT faixa_etaria('2005-01-01') AS faixa_etaria;
 
--- Testa a function media_idade
+-- Testa a function media_idade, e calcula a média de idade dos usuários
 
 SELECT media_idade() AS "Média de Idade";
 
@@ -196,6 +247,14 @@ SELECT media_idade() AS "Média de Idade";
 
 SELECT "A média de idade dos usuários é maior que 30 anos" AS messagem
 WHERE media_idade() > 30;
+
+-- Testa a function calcula_total_gasto, e calcula o total gasto por um usuário específico
+
+SELECT calcula_total_gasto(1);
+
+-- Testa a function buscar_faixa_etaria_usuario, e busca a faixa etária de um usuário específico
+
+SELECT buscar_faixa_etaria_usuario(1) AS faixa_etaria_usuario;
 
 -- Verifica se as funções foram criadas corretamente
 
@@ -212,6 +271,7 @@ DROP FUNCTION IF EXISTS registrar_log_evento;
 DROP FUNCTION IF EXISTS maior_idade;
 DROP FUNCTION IF EXISTS faixa_etaria;
 DROP FUNCTION IF EXISTS media_idade;
+DROP FUNCTION IF EXISTS calcula_total_gasto;
 
 -- Verifica se o log_bin_trust_function_creators está habilitado para permitir a criação de funções que não são determinísticas
 
