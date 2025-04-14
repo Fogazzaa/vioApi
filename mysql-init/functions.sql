@@ -5,7 +5,13 @@ CREATE TABLE log_evento (
     data_log datetime DEFAULT current_timestamp
 );
 
+-- Verifica se o log_bin_trust_function_creators está habilitado para permitir a criação de funções que não são determinísticas
+
+SET GLOBAL log_bin_trust_function_creators = 1;
+
 -- Cria função para calcular a idade de um usuário com base na data de nascimento
+
+DELIMITER $$
 
 CREATE FUNCTION calcula_idade(datanascimento DATE) RETURNS INT
 DETERMINISTIC
@@ -44,7 +50,7 @@ BEGIN
     FROM compra c
     WHERE id_usuario = c.fk_id_usuario;
     RETURN total;
-END $$
+END; $$
 
 DELIMITER ;
 
@@ -60,7 +66,7 @@ BEGIN
     INSERT INTO log_evento (mensage) 
     VALUES (texto);
     RETURN 'Log registrado com sucesso!';
-END $$
+END; $$
 
 DELIMITER ;
 
@@ -76,16 +82,78 @@ BEGIN
     DECLARE mensagem varchar(255);
     SET mensagem = CONCAT('Bem-vindo(a), ', nome_usuario, '! ao Sistema VIO');
     RETURN mensagem;
-END $$
+END; $$
 
 DELIMITER ;
 
--- Verifica se a função foi criada corretamente
+-- Cria função para verificar se o usuário é maior de idade
 
-SHOW CREATE FUNCTION calcula_idade;
-SHOW CREATE FUNCTION status_sistema;
-SHOW CREATE FUNCTION total_compras_usuario;
-SHOW CREATE FUNCTION registrar_log_evento;
+DELIMITER $$
+
+CREATE FUNCTION is_maior_idade (data_nascimento DATE)
+RETURNS BOOLEAN
+NOT DETERMINISTIC
+CONTAINS SQL
+BEGIN
+    DECLARE idade INT;
+    SET idade = calcula_idade(data_nascimento);
+    RETURN idade >= 18;
+END; $$
+
+DELIMITER ;
+
+-- Categorizar usuários por faixa de idade (criança, adolescente, adulto, idoso)
+
+DELIMITER $$
+
+CREATE FUNCTION faixa_etaria (data_nascimento DATE)
+RETURNS VARCHAR(50)
+NOT DETERMINISTIC
+CONTAINS SQL
+BEGIN
+    DECLARE idade INT;
+    SET idade = calcula_idade(data_nascimento);
+    IF idade < 12 THEN
+        RETURN 'Criança';
+    ELSEIF idade >= 12 AND idade < 18 THEN
+        RETURN 'Adolescente';
+    ELSEIF idade >= 18 AND idade < 60 THEN
+        RETURN 'Adulto';
+    ELSE
+        RETURN 'Idoso';
+    END IF;
+END; $$
+
+DELIMITER ;
+
+-- Cria função para calcular a média de idade dos usuários
+
+DELIMITER $$
+
+CREATE FUNCTION media_idade()
+RETURNS DECIMAL(5,2)
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE media DECIMAL(5,2);
+    SELECT AVG(calcula_idade(data_nascimento)) INTO media
+    FROM usuario;
+    RETURN IFNULL(media, 0);
+END; $$
+
+DELIMITER ;
+
+-- Agrupar usuários por faixa etária
+
+SELECT faixa_etaria(data_nascimento) AS "Faixa Etária", COUNT(*) AS "Quantidade"
+FROM usuario
+GROUP BY faixa_etaria(data_nascimento);
+
+-- Identificar uma faixa etária específica, e mostra os nomes dos usuários
+
+SELECT name, faixa_etaria(data_nascimento) AS "Faixa Etária"
+FROM usuario
+WHERE faixa_etaria(data_nascimento) = 'Adulto';
 
 -- Testa a function calcula_idade
 
@@ -112,12 +180,38 @@ SELECT registrar_log_evento('Teste de log de evento') AS resultado_log_evento;
 
 SELECT mensagem_boas_vindas('Vini') AS mensagem_bem_vindo;
 
+-- Testa a function is_maior_idade
+
+SELECT is_maior_idade('2005-01-01') AS maior_idade;
+
+-- Testa a function faixa_etaria
+
+SELECT faixa_etaria('2005-01-01') AS faixa_etaria;
+
+-- Testa a function media_idade
+
+SELECT media_idade() AS "Média de Idade";
+
+-- Verifica se a média de idade dos usuários é maior que 30 anos
+
+SELECT "A média de idade dos usuários é maior que 30 anos" AS messagem
+WHERE media_idade() > 30;
+
+-- Verifica se as funções foram criadas corretamente
+
+SELECT routine_name AS "Função", routine_type AS "Tipo", data_type AS "Tipo de Retorno"
+FROM information_schema.routines
+WHERE routine_schema = 'vio_vini' AND routine_type = 'FUNCTION';
+
 -- Delete as funções criadas
 
 DROP FUNCTION IF EXISTS calcula_idade;
 DROP FUNCTION IF EXISTS status_sistema;
 DROP FUNCTION IF EXISTS total_compras_usuario;
 DROP FUNCTION IF EXISTS registrar_log_evento;
+DROP FUNCTION IF EXISTS maior_idade;
+DROP FUNCTION IF EXISTS faixa_etaria;
+DROP FUNCTION IF EXISTS media_idade;
 
 -- Verifica se o log_bin_trust_function_creators está habilitado para permitir a criação de funções que não são determinísticas
 

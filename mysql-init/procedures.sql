@@ -52,8 +52,6 @@ END; //
 
 DELIMITER ;
 
-DELIMITER $$
-
 -- Mostra as procedures criadas
 
 SHOW PROCEDURE STATUS WHERE db = 'vio_vini';
