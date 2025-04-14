@@ -59,9 +59,9 @@ create table evento (
 );
 
 insert into evento (nome, data_hora, local, descricao, fk_id_organizador) values
-    ('Festival de Verão', '2024-12-15', 'Praia Central', 'evento de verao', '1'),
-    ('Congresso de Tecnologia', '2024-11-20', 'Centro de convencoes', 'Evento de tecnologia', '2'),
-    ('Show Internacional', '2024-10-30', 'Arena Principal', 'Evento internacional', '3');
+    ('Festival de Verão', '2024-12-15', 'Praia Central', 'Evento de Verão', '1'),
+    ('Congresso de Tecnologia', '2024-11-20', 'Centro de Convenções', 'Evento de Tecnologia', '2'),
+    ('Show Internacional', '2024-10-30', 'Arena Principal', 'Evento Internacional', '3');
 
 create table ingresso (
     id_ingresso int auto_increment primary key,
