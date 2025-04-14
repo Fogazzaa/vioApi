@@ -250,6 +250,35 @@ UNLOCK TABLES;
 --
 -- Dumping routines for database 'vio_vini'
 --
+/*!50003 DROP FUNCTION IF EXISTS `buscar_faixa_etaria_usuario` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`alunods`@`%` FUNCTION `buscar_faixa_etaria_usuario`(pid INT) RETURNS varchar(30) CHARSET utf8mb4
+    READS SQL DATA
+BEGIN
+    DECLARE faixa VARCHAR(50);
+    DECLARE nascimento DATE;
+    SELECT data_nascimento INTO nascimento
+    FROM usuario
+    WHERE id_usuario = pid;
+    SET faixa = faixa_etaria(nascimento);
+    IF faixa IS NULL THEN
+        SET faixa = 'Faixa etária não encontrada';
+    END IF;
+    RETURN faixa;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP FUNCTION IF EXISTS `calcula_idade` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -266,6 +295,32 @@ BEGIN
     DECLARE idade INT;
     SET idade = timestampdiff(year, datanascimento, CURDATE());
     RETURN idade;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP FUNCTION IF EXISTS `calcula_total_gasto` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`alunods`@`%` FUNCTION `calcula_total_gasto`(pid_usuario INT) RETURNS decimal(10,2)
+    READS SQL DATA
+BEGIN
+    DECLARE total DECIMAL(10,2);
+    SELECT SUM(i.preco * ic.quantidade) INTO total
+    FROM ingresso_compra ic
+    JOIN compra c ON ic.fk_id_compra = c.id_compra
+    JOIN ingresso i ON ic.fk_id_ingresso = i.id_ingresso
+    WHERE c.fk_id_usuario = pid_usuario;
+    RETURN IFNULL (total, 0);
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -292,8 +347,12 @@ BEGIN
         RETURN 'Adolescente';
     ELSEIF idade >= 18 AND idade < 60 THEN
         RETURN 'Adulto';
-    ELSE
+    ELSEIF idade >= 60 AND idade < 100 THEN
         RETURN 'Idoso';
+    ELSEIF idade IS NULL THEN
+        RETURN 'Idade não informada';
+    ELSE
+        RETURN 'Idade Inválida';
     END IF;
 END ;;
 DELIMITER ;
@@ -484,6 +543,48 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `resumo_usuario` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`alunods`@`%` PROCEDURE `resumo_usuario`(IN pid INT)
+BEGIN
+    DECLARE nome VARCHAR(100);
+    DECLARE email VARCHAR(100);
+    DECLARE total_reais DECIMAL(10,2);
+    DECLARE faixa VARCHAR(20);
+
+    -- Busca o nome e o email do usuário
+
+    SELECT u.name, u.email INTO nome, email
+    FROM usuario u
+    WHERE u.id_usuario = pid;
+
+    -- Chama as funções para calcular a idade e o total gasto
+
+    SET faixa = faixa_etaria((SELECT data_nascimento FROM usuario WHERE id_usuario = pid));
+    SET total_reais = calcula_total_gasto(pid);
+
+    -- Mostra 
+
+    SELECT nome AS nome_usuario,
+    email AS email_usuario,
+    faixa AS faixa_etaria,
+    total_reais AS total_gasto
+    FROM DUAL; -- Retorna os dados em uma tabela temporária
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `total_ingressos_usuario` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -520,4 +621,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-14 10:27:57
+-- Dump completed on 2025-04-14 13:53:32
