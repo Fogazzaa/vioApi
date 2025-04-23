@@ -72,11 +72,11 @@ create table ingresso (
 );
 
 insert into ingresso (preco, tipo, fk_id_evento) values
-    (500, 'vip', '1'),
-    (150, 'pista', '1'),
-    (200, 'pista', '2'),
-    (600, 'vip', '3'),
-    (250, 'pista', '3');
+    (500, 'VIP', '1'),
+    (150, 'PISTA', '1'),
+    (200, 'PISTA', '2'),
+    (600, 'VIP', '3'),
+    (250, 'PISTA', '3');
 
 create table compra(
     id_compra int auto_increment primary key,

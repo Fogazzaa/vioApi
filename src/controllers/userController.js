@@ -111,12 +111,12 @@ module.exports = class userController {
 
     try {
       connect.query(query, values, function (err, results) {
-        if (err.code === "ER_ROW_IS_REFERENCED_2") {
-          return res.status(400).json({
-            error: "Usuário tem Compra",
-          });
-        }
         if (err) {
+          if (err.code === "ER_ROW_IS_REFERENCED_2") {
+            return res.status(400).json({
+              error: "Usuário Tem Compra",
+            });
+          }
           console.error(err);
           return res.status(500).json({ error: "Erro interno do servidor" });
         }

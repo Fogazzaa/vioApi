@@ -110,6 +110,11 @@ module.exports = class ingController {
     try {
       connect.query(query, values, function (err, results) {
         if (err) {
+          if (err.code === "ER_ROW_IS_REFERENCED_2") {
+            return res.status(400).json({
+              error: "Ingresso Já Foi Comprado",
+            });
+          }
           console.error(err);
           return res.status(500).json({ error: "Erro Interno do Servidor" });
         }
