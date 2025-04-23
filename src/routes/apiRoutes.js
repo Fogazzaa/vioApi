@@ -27,5 +27,6 @@ router.post("/ing", ingController.createIng);
 router.get("/ing", ingController.getAllIngs);
 router.put("/ing", ingController.updateIng);
 router.delete("/ing/:id_ingresso", ingController.deleteIng);
+router.get("/ing/evento/:id_evento", ingController.getByIdEvento);
 
 module.exports = router;
