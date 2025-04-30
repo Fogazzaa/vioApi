@@ -74,14 +74,14 @@ module.exports = class orgController {
   } //getAllOrgrs
 
   static async updateOrg(req, res) {
-    const { id, nome, email, senha, telefone } = req.body;
-    if (!nome || !email || !senha || !telefone) {
+    const { id, nome, email, senha, telefone, id_organizador } = req.body;
+    if (!nome || !email || !senha || !telefone || !id_organizador) {
       return res
         .status(400)
         .json({ error: "Todos os campos devem ser preenchidos" });
     }
     const query = `UPDATE organizador SET nome=?, email=?, senha=?, telefone=? WHERE id_organizador=?`;
-    const values = [nome, email, senha, telefone, id];
+    const values = [nome, email, senha, telefone, id_organizador];
     try {
       connect.query(query, values, function (err, results) {
         if (err) {
