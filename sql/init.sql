@@ -40,7 +40,7 @@ CREATE TABLE `compra` (
 
 LOCK TABLES `compra` WRITE;
 /*!40000 ALTER TABLE `compra` DISABLE KEYS */;
-INSERT INTO `compra` VALUES (1,'2024-11-14 19:04:00',1),(2,'2024-11-13 17:00:00',1),(3,'2024-11-12 15:30:00',2),(4,'2024-11-11 14:20:00',2);
+INSERT INTO `compra` VALUES (1,'2025-12-30 23:00:00',1),(2,'2025-12-30 23:00:00',1),(3,'2025-12-30 23:00:00',2),(4,'2025-12-30 23:00:00',2);
 /*!40000 ALTER TABLE `compra` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -61,7 +61,7 @@ CREATE TABLE `evento` (
   PRIMARY KEY (`id_evento`),
   KEY `fk_id_organizador` (`fk_id_organizador`),
   CONSTRAINT `evento_ibfk_1` FOREIGN KEY (`fk_id_organizador`) REFERENCES `organizador` (`id_organizador`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,7 +70,7 @@ CREATE TABLE `evento` (
 
 LOCK TABLES `evento` WRITE;
 /*!40000 ALTER TABLE `evento` DISABLE KEYS */;
-INSERT INTO `evento` VALUES (1,'Festival de Verão','evento de verao','2024-12-15 00:00:00','Praia Central',1),(2,'Congresso de Tecnologia','Evento de tecnologia','2024-11-20 00:00:00','Centro de convencoes',2),(3,'Show Internacional','Evento internacional','2024-10-30 00:00:00','Arena Principal',3);
+INSERT INTO `evento` VALUES (1,'Festival de Verão','Evento de Verão','2024-12-31 07:00:00','Praia Central',1),(2,'Congresso de Tecnologia','Evento de Tecnologia','2024-12-31 07:00:00','Centro de Convenções',2),(3,'Show Internacional','Evento Internacional','2024-12-31 07:00:00','Arena Principal',3),(4,'Feira Cultural de Inverno','Evento cultural com música e gastronomia','2025-07-20 18:00:00','Parque Municipal',1);
 /*!40000 ALTER TABLE `evento` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -98,7 +98,7 @@ CREATE TABLE `ingresso` (
 
 LOCK TABLES `ingresso` WRITE;
 /*!40000 ALTER TABLE `ingresso` DISABLE KEYS */;
-INSERT INTO `ingresso` VALUES (1,500.00,'vip',1),(2,150.00,'pista',1),(3,200.00,'pista',2),(4,600.00,'vip',3),(5,250.00,'pista',3);
+INSERT INTO `ingresso` VALUES (1,500.00,'VIP',1),(2,150.00,'PISTA',1),(3,200.00,'PISTA',2),(4,600.00,'VIP',3),(5,250.00,'PISTA',3);
 /*!40000 ALTER TABLE `ingresso` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -131,6 +131,31 @@ LOCK TABLES `ingresso_compra` WRITE;
 INSERT INTO `ingresso_compra` VALUES (1,5,4,1),(2,2,5,1),(3,1,1,2),(4,2,2,2);
 /*!40000 ALTER TABLE `ingresso_compra` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`alunods`@`%`*/ /*!50003 TRIGGER `verifica_data_evento` BEFORE INSERT ON `ingresso_compra` FOR EACH ROW BEGIN
+    DECLARE data_evento DATETIME;
+    SELECT e.data_hora INTO data_evento
+    FROM ingresso i JOIN evento e ON i.fk_id_evento = e.id_evento
+    WHERE i.id_ingresso = new.fk_id_ingresso;
+
+    IF DATE(data_evento) < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET message_text = 'Não é possível comprar ingressos para eventos passados';
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `log_evento`
@@ -370,10 +395,10 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`alunods`@`%` FUNCTION `is_maior_idade`(datanascimento DATE) RETURNS tinyint(1)
+CREATE DEFINER=`alunods`@`%` FUNCTION `is_maior_idade`(data_nascimento DATE) RETURNS tinyint(1)
 BEGIN
     DECLARE idade INT;
-    SET idade = calcula_idade(datanascimento);
+    SET idade = calcula_idade(data_nascimento);
     RETURN idade >= 18;
 END ;;
 DELIMITER ;
@@ -509,6 +534,18 @@ CREATE DEFINER=`alunods`@`%` PROCEDURE `registrar_compra`(
 )
 BEGIN
     DECLARE v_id_compra INT;
+    DECLARE v_data_evento DATETIME;
+    
+    SELECT e.data_hora INTO v_data_evento
+    FROM ingresso i
+    JOIN evento e ON i.fk_id_evento = e.id_evento
+    WHERE i.id_ingresso = p_id_ingresso;
+
+    IF DATE(v_data_evento) < CURDATE() THEN
+SIGNAL SQLSTATE '45000'
+        SET message_text = 'ERRO PROCEDURE - Não é possível comprar ingressos para eventos passados';
+END IF;
+
     INSERT INTO compra (data_compra, fk_id_usuario)
     VALUES (NOW(), p_id_usuario);
     SET v_id_compra = LAST_INSERT_ID();
@@ -621,4 +658,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-14 13:53:32
+-- Dump completed on 2025-05-12 14:16:07

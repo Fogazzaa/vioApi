@@ -12,6 +12,18 @@ CREATE PROCEDURE registrar_compra(
 )
 BEGIN
     DECLARE v_id_compra INT;
+    DECLARE v_data_evento DATETIME;
+    
+    SELECT e.data_hora INTO v_data_evento
+    FROM ingresso i
+    JOIN evento e ON i.fk_id_evento = e.id_evento
+    WHERE i.id_ingresso = p_id_ingresso;
+
+    IF DATE(v_data_evento) < CURDATE() THEN
+		SIGNAL SQLSTATE '45000'
+        SET message_text = 'ERRO PROCEDURE - Não é possível comprar ingressos para eventos passados';
+	END IF;
+
     INSERT INTO compra (data_compra, fk_id_usuario)
     VALUES (NOW(), p_id_usuario);
     SET v_id_compra = LAST_INSERT_ID();

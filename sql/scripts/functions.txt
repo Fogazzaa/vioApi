@@ -1,0 +1,178 @@
+CREATE TABLE log_evento (
+    id_log INT AUTO_INCREMENT PRIMARY KEY,
+    mensage VARCHAR(255),
+    data_log datetime DEFAULT current_timestamp
+);
+
+SET GLOBAL log_bin_trust_function_creators = 1;
+
+DELIMITER $$
+
+CREATE FUNCTION calcula_idade(datanascimento DATE) RETURNS INT
+DETERMINISTIC
+CONTAINS SQL
+
+BEGIN
+    DECLARE idade INT;
+    SET idade = timestampdiff(year, datanascimento, CURDATE());
+    RETURN idade;
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION status_sistema() 
+RETURNS VARCHAR(50)
+NO SQL
+
+BEGIN
+   RETURN 'Sistema em funcionamento';
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION total_compras_usuario(id_usuario INT)
+RETURNS INT
+READS SQL DATA
+
+BEGIN
+    DECLARE total INT;
+    SELECT COUNT(*) INTO total
+    FROM compra c
+    WHERE id_usuario = c.fk_id_usuario;
+    RETURN total;
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION registrar_log_evento(texto VARCHAR(255))
+RETURNS VARCHAR(50)
+NOT DETERMINISTIC
+MODIFIES SQL DATA
+
+BEGIN
+    INSERT INTO log_evento (mensage) 
+    VALUES (texto);
+    RETURN 'Log registrado com sucesso!';
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION mensagem_boas_vindas(nome_usuario varchar(100))
+RETURNS varchar(255)
+DETERMINISTIC
+CONTAINS SQL
+
+BEGIN
+    DECLARE mensagem varchar(255);
+    SET mensagem = CONCAT('Bem-vindo(a), ', nome_usuario, '! ao Sistema VIO');
+    RETURN mensagem;
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION is_maior_idade (data_nascimento DATE)
+RETURNS BOOLEAN
+NOT DETERMINISTIC
+CONTAINS SQL
+
+BEGIN
+    DECLARE idade INT;
+    SET idade = calcula_idade(data_nascimento);
+    RETURN idade >= 18;
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION faixa_etaria (data_nascimento DATE)
+RETURNS VARCHAR(50)
+NOT DETERMINISTIC
+CONTAINS SQL
+
+BEGIN
+    DECLARE idade INT;
+    SET idade = calcula_idade(data_nascimento);
+    IF idade < 12 THEN
+        RETURN 'Criança';
+    ELSEIF idade >= 12 AND idade < 18 THEN
+        RETURN 'Adolescente';
+    ELSEIF idade >= 18 AND idade < 60 THEN
+        RETURN 'Adulto';
+    ELSEIF idade >= 60 AND idade < 100 THEN
+        RETURN 'Idoso';
+    ELSEIF idade IS NULL THEN
+        RETURN 'Idade não informada';
+    ELSE
+        RETURN 'Idade Inválida';
+    END IF;
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION media_idade()
+RETURNS DECIMAL(5,2)
+NOT DETERMINISTIC
+READS SQL DATA
+
+BEGIN
+    DECLARE media DECIMAL(5,2);
+    SELECT AVG(calcula_idade(data_nascimento)) INTO media
+    FROM usuario;
+    RETURN IFNULL(media, 0);
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION calcula_total_gasto(pid_usuario INT)
+RETURNS DECIMAL(10,2)
+NOT DETERMINISTIC
+READS SQL DATA
+
+BEGIN
+    DECLARE total DECIMAL(10,2);
+    SELECT SUM(i.preco * ic.quantidade) INTO total
+    FROM ingresso_compra ic
+    JOIN compra c ON ic.fk_id_compra = c.id_compra
+    JOIN ingresso i ON ic.fk_id_ingresso = i.id_ingresso
+    WHERE c.fk_id_usuario = pid_usuario;
+    RETURN IFNULL (total, 0);
+END; $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION buscar_faixa_etaria_usuario(pid INT)
+RETURNS VARCHAR(30)
+NOT DETERMINISTIC
+READS SQL DATA
+
+BEGIN
+    DECLARE faixa VARCHAR(50);
+    DECLARE nascimento DATE;
+    SELECT data_nascimento INTO nascimento
+    FROM usuario
+    WHERE id_usuario = pid;
+    SET faixa = faixa_etaria(nascimento);
+    IF faixa IS NULL THEN
+        SET faixa = 'Faixa etária não encontrada';
+    END IF;
+    RETURN faixa;
+END; $$
+
+DELIMITER ;
