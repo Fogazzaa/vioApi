@@ -1,0 +1,34 @@
+version: "3.8"
+
+## Indentação é a base
+
+services: 
+  app:
+    ## O . indica que a imagem do Docker será construida no diretório atual
+    build: .
+    command: /bin/sh -c "npm install && npm start"
+    ## Mapeia a porta 5000 do container para a porta 5000 da máquina
+    ports:
+      - "5000:5000"
+    ## Monta o diretório da máquina atual da máquina host no diretório /usr/app
+    volumes:
+      - .:/usr/app
+    ## Indica que o serviço app depende do serviço db
+    depends_on:
+      - db
+  db:
+    image: mysql:8.0
+    ## Sempre que travar, ele será reiniciado
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: senai@604
+      MYSQL_DATABASE: vio_vini
+    ## Mapeia a porta 3306 do container para a máquina 3306 da máquina local
+    ports:
+      - "3307:3307"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql/scripts/script:/docker-entrypoint-initdb.d
+
+volumes:
+  db_data: 

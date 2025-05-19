@@ -1,6 +1,6 @@
-create database vio_vini;
+-- create database vio_vini;
 
-use vio_vini;
+-- use vio_vini;
 
 create table usuario (
     id_usuario int auto_increment primary key,
