@@ -61,8 +61,10 @@ CREATE TABLE evento (
 INSERT INTO evento (nome, data_hora, local, descricao, fk_id_organizador) VALUES
     ('Festival de Verão', '2024-12-31 07:00:00', 'Praia Central', 'Evento de Verão', 1),
     ('Congresso de Tecnologia', '2024-12-31 07:00:00', 'Centro de Convenções', 'Evento de Tecnologia', 2),
-    ('Show Internacional', '2024-12-31 07:00:00', 'Arena Principal', 'Evento Internacional', 3),
-    ('Feira Cultural de Inverno', '2025-07-20 18:00:00', 'Parque Municipal', 'Evento cultural com música e gastronomia', 1);
+    ('Show Internacional', '2025-12-31 07:00:00', 'Arena Principal', 'Evento Internacional', 3),
+    ('Feira Cultural de Inverno', '2025-12-31 18:00:00', 'Parque Municipal', 'Evento cultural com música e gastronomia', 1),
+    ('Corrida Solidária', '2025-06-15 08:00:00', 'Parque da Cidade', 'Corrida beneficente para arrecadar fundos', 2),
+    ('Workshop de Fotografia', '2025-12-31 14:00:00', 'Estúdio Luz', 'Workshop prático de fotografia digital', 3);
 
 CREATE TABLE ingresso (
     id_ingresso INT AUTO_INCREMENT PRIMARY KEY,
@@ -77,7 +79,13 @@ INSERT INTO ingresso (preco, tipo, fk_id_evento) VALUES
     (150, 'PISTA', 1),
     (200, 'PISTA', 2),
     (600, 'VIP', 3),
-    (250, 'PISTA', 3);
+    (250, 'PISTA', 3),
+    (600, 'VIP', 4),
+    (250, 'PISTA', 4),
+    (600, 'VIP', 5),
+    (250, 'PISTA', 5),
+    (600, 'VIP', 6),
+    (250, 'PISTA', 6);
 
 CREATE TABLE compra(
     id_compra INT AUTO_INCREMENT PRIMARY KEY,
