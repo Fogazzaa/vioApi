@@ -1,3 +1,7 @@
+
+SET GLOBAL event_scheduler = ON;
+SET GLOBAL log_bin_trust_function_creators = 1;
+
 CREATE DATABASE vio_vini;
 
 USE vio_vini;
@@ -95,8 +99,8 @@ CREATE TABLE compra(
 );
 
 INSERT INTO compra (data_compra, fk_id_usuario) VALUES
-    ('2025-12-30 23:00:00', 1),
-    ('2025-12-30 23:00:00', 1),
+    ('2024-01-01 23:00:00', 1),
+    ('2024-01-01 23:00:00', 1),
     ('2025-12-30 23:00:00', 2),
     ('2025-12-30 23:00:00', 2);
 
@@ -142,9 +146,6 @@ CREATE TABLE resumo_evento (
     id_evento INT PRIMARY KEY,
     total_ingressos INT
 );
-
-
-SET GLOBAL log_bin_trust_function_creators = 1;
 
 -- Funções
 
@@ -480,3 +481,39 @@ BEGIN
 END//
 
 DELIMITER ;
+
+-- Events
+
+CREATE EVENT IF NOT EXISTS arquivar_compras_antigas
+    ON schedule EVERY 1 DAY
+    STARTS CURRENT_TIMESTAMP + INTERVAL 1 DAY
+    ON COMPLETION PRESERVE
+    ENABLE
+DO
+    INSERT INTO historico_compra(id_compra, data_compra, id_usuario)
+    
+    SELECT id_compra, data_compra, fk_id_usuario
+        FROM compra
+        WHERE data_compra < NOW() - INTERVAL 6 MONTH;
+
+CREATE EVENT excluir_eventos_antigos
+    ON schedule every 1 WEEK
+    STARTS CURRENT_TIMESTAMP + INTERVAL 5 MINUTE
+    ON COMPLETION PRESERVE
+    ENABLE
+DO 
+    DELETE FROM evento
+    WHERE data_hora < NOW() - INTERVAL 1 YEAR;
+
+    
+CREATE EVENT reajuste_precos_eventos_proximos
+    ON schedule every 1 DAY
+    STARTS CURRENT_TIMESTAMP + INTERVAL 2 MINUTE
+    ON COMPLETION PRESERVE
+    ENABLE
+DO
+    UPDATE ingresso SET preco = preco * 1.1
+    WHERE fk_id_evento IN(
+        SELECT id_evento FROM evento
+        WHERE data_hora BETWEEN NOW() AND NOW() + INTERVAL 7 DAY
+    );

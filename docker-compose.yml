@@ -21,7 +21,7 @@ services:
     ## Sempre que travar, ele será reiniciado
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: senai@604
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: vio_vini
     ## Mapeia a porta 3306 do container para a máquina 3306 da máquina local
     ports:
