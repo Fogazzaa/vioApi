@@ -2,8 +2,9 @@ const router = require("express").Router();
 const verifyJWT = require("../services/verifyJWT")
 
 const userController = require("../controllers/userController");
-const orgController = require("../controllers/orgController");
 const eventoController = require("../controllers/eventoController");
+const compraController = require("../controllers/compraController");
+const orgController = require("../controllers/orgController");
 const ingController = require("../controllers/ingController");
 
 router.post("/user", userController.createUser);
@@ -29,5 +30,8 @@ router.get("/ing", verifyJWT, ingController.getAllIngs);
 router.put("/ing", verifyJWT, ingController.updateIng);
 router.delete("/ing/:id_ingresso", verifyJWT, ingController.deleteIng);
 router.get("/ing/evento/:id_evento", verifyJWT, ingController.getByIdEvento);
+
+router.post("/compraSimples", verifyJWT, compraController.registrarCompraSimples);
+router.post("/compra", verifyJWT, compraController.registrarCompra);
 
 module.exports = router;
