@@ -1,5 +1,7 @@
 const connect = require("../db/connect");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const SALT_ROUNDS = 10;
 const validateUser = require("../services/validateUser");
 const validateCpf = require("../services/validateCpf");
 
@@ -18,10 +20,12 @@ module.exports = class userController {
         return res.status(400).json(cpfError);
       }
 
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
+
       const query = `INSERT INTO usuario (cpf, password, email, name, data_nascimento) VALUES (?, ?, ?, ?, ?)`;
       connect.query(
         query,
-        [cpf, password, email, name, data_nascimento],
+        [cpf, hashedPassword, email, name, data_nascimento],
         (err) => {
           if (err) {
             if (err.code === "ER_DUP_ENTRY") {
@@ -135,7 +139,6 @@ module.exports = class userController {
     }
   }
 
-  // Método de Login - Implementar
   static async loginUser(req, res) {
     const { email, password } = req.body;
 
@@ -158,7 +161,9 @@ module.exports = class userController {
 
         const user = results[0];
 
-        if (user.password !== password) {
+        const passwordOK = bcrypt.compareSync(password, user.password)
+
+        if (!passwordOK) {
           return res.status(401).json({ error: "Senha incorreta" });
         }
 
@@ -168,7 +173,7 @@ module.exports = class userController {
 
         delete user.password;
 
-        return res.status(200).json({message: "Login Bem-Sucedido", user, token})
+        return res.status(200).json({ message: "Login Bem-Sucedido", user, token })
 
       });
     } catch (error) {

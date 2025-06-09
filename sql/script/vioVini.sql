@@ -10,38 +10,19 @@ CREATE TABLE usuario (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(50) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     cpf CHAR(11) NOT NULL UNIQUE,
     data_nascimento DATE NOT NULL
 );
 
 INSERT INTO usuario (name, email, password, cpf, data_nascimento) VALUES
-('João Silva', 'joao.silva@example.com', 'senha123', '16123456789', '1990-01-15'),
-('Maria Oliveira', 'maria.oliveira@example.com', 'senha123', '16987654321', '1985-06-23'),
-('Carlos Pereira', 'carlos.pereira@example.com', 'senha123', '16123987456', '1992-11-30'),
-('Ana Souza', 'ana.souza@example.com', 'senha123', '16456123789', '1987-04-18'),
-('Pedro Costa', 'pedro.costa@example.com', 'senha123', '16789123456', '1995-08-22'),
-('Laura Lima', 'laura.lima@example.com', 'senha123', '16321654987', '1998-09-09'),
-('Lucas Alves', 'lucas.alves@example.com', 'senha123', '16654321987', '1993-12-01'),
-('Fernanda Rocha', 'fernanda.rocha@example.com', 'senha123', '16741852963', '1991-07-07'),
-('Rafael Martins', 'rafael.martins@example.com', 'senha123', '16369258147', '1994-03-27'),
-('Juliana Nunes', 'juliana.nunes@example.com', 'senha123', '16258147369', '1986-05-15'),
-('Paulo Araujo', 'paulo.araujo@example.com', 'senha123', '16159753486', '1997-10-12'),
-('Beatriz Melo', 'beatriz.melo@example.com', 'senha123', '16486159753', '1990-02-28'),
-('Renato Dias', 'renato.dias@example.com', 'senha123', '16753486159', '1996-11-11'),
-('Camila Ribeiro', 'camila.ribeiro@example.com', 'senha123', '16963852741', '1989-08-03'),
-('Thiago Teixeira', 'thiago.teixeira@example.com', 'senha123', '16852741963', '1992-12-24'),
-('Patrícia Fernandes', 'patricia.fernandes@example.com', 'senha123', '16741963852', '1991-01-10'),
-('Rodrigo Gomes', 'rodrigo.gomes@example.com', 'senha123', '16963741852', '1987-06-30'),
-('Mariana Batista', 'mariana.batista@example.com', 'senha123', '16147258369', '1998-09-22'),
-('Fábio Freitas', 'fabio.freitas@example.com', 'senha123', '16369147258', '1994-04-16'),
-('Isabela Cardoso', 'isabela.cardoso@example.com', 'senha123', '16258369147', '1985-11-08');
+('João Silva', 'joao.silva@example.com', '$2b$10$.dhNDXvJnzi2Cw4c7tUvsO4FxdpkA.PzzyQpdu6exZ8mdJWwB4nSW', '16123456789', '1990-01-15');
 
 CREATE TABLE organizador (
 id_organizador INT AUTO_INCREMENT PRIMARY KEY,
 nome VARCHAR(100) NOT NULL,
 email VARCHAR(100) NOT NULL UNIQUE,
-senha VARCHAR(50) NOT NULL,
+senha VARCHAR(255) NOT NULL,
 telefone CHAR(11) NOT NULL
 );
 
@@ -65,10 +46,8 @@ CREATE TABLE evento (
 INSERT INTO evento (nome, data_hora, local, descricao, fk_id_organizador) VALUES
     ('Festival de Verão', '2024-12-31 07:00:00', 'Praia Central', 'Evento de Verão', 1),
     ('Congresso de Tecnologia', '2024-12-31 07:00:00', 'Centro de Convenções', 'Evento de Tecnologia', 2),
-    ('Show Internacional', '2025-12-31 07:00:00', 'Arena Principal', 'Evento Internacional', 3),
-    ('Feira Cultural de Inverno', '2025-12-31 18:00:00', 'Parque Municipal', 'Evento cultural com música e gastronomia', 1),
-    ('Corrida Solidária', '2025-06-15 08:00:00', 'Parque da Cidade', 'Corrida beneficente para arrecadar fundos', 2),
-    ('Workshop de Fotografia', '2025-12-31 14:00:00', 'Estúdio Luz', 'Workshop prático de fotografia digital', 3);
+    ('Show Internacional', '2024-12-31 07:00:00', 'Arena Principal', 'Evento Internacional', 3),
+    ('Feira Cultural de Inverno', '2025-07-20 18:00:00', 'Parque Municipal', 'Evento cultural com música e gastronomia', 1);
 
 CREATE TABLE ingresso (
     id_ingresso INT AUTO_INCREMENT PRIMARY KEY,
@@ -83,13 +62,7 @@ INSERT INTO ingresso (preco, tipo, fk_id_evento) VALUES
     (150, 'PISTA', 1),
     (200, 'PISTA', 2),
     (600, 'VIP', 3),
-    (250, 'PISTA', 3),
-    (600, 'VIP', 4),
-    (250, 'PISTA', 4),
-    (600, 'VIP', 5),
-    (250, 'PISTA', 5),
-    (600, 'VIP', 6),
-    (250, 'PISTA', 6);
+    (250, 'PISTA', 3);
 
 CREATE TABLE compra(
     id_compra INT AUTO_INCREMENT PRIMARY KEY,
@@ -99,10 +72,10 @@ CREATE TABLE compra(
 );
 
 INSERT INTO compra (data_compra, fk_id_usuario) VALUES
-    ('2024-01-01 23:00:00', 1),
-    ('2024-01-01 23:00:00', 1),
-    ('2025-12-30 23:00:00', 2),
-    ('2025-12-30 23:00:00', 2);
+    ('2025-12-31 23:00:00', 1),
+    ('2025-12-31 23:00:00', 1),
+    ('2025-01-01 23:00:00', 1),
+    ('2025-01-01 23:00:00', 1);
 
 CREATE TABLE ingresso_compra(
     id_ingresso_compra INT AUTO_INCREMENT PRIMARY KEY,
@@ -509,39 +482,3 @@ BEGIN
 END//
 
 DELIMITER ;
-
--- Events
-
-CREATE EVENT IF NOT EXISTS arquivar_compras_antigas
-    ON schedule EVERY 1 DAY
-    STARTS CURRENT_TIMESTAMP + INTERVAL 1 DAY
-    ON COMPLETION PRESERVE
-    ENABLE
-DO
-    INSERT INTO historico_compra(id_compra, data_compra, id_usuario)
-    
-    SELECT id_compra, data_compra, fk_id_usuario
-        FROM compra
-        WHERE data_compra < NOW() - INTERVAL 6 MONTH;
-
-CREATE EVENT excluir_eventos_antigos
-    ON schedule every 1 WEEK
-    STARTS CURRENT_TIMESTAMP + INTERVAL 5 MINUTE
-    ON COMPLETION PRESERVE
-    ENABLE
-DO 
-    DELETE FROM evento
-    WHERE data_hora < NOW() - INTERVAL 1 YEAR;
-
-    
-CREATE EVENT reajuste_precos_eventos_proximos
-    ON schedule every 1 DAY
-    STARTS CURRENT_TIMESTAMP + INTERVAL 2 MINUTE
-    ON COMPLETION PRESERVE
-    ENABLE
-DO
-    UPDATE ingresso SET preco = preco * 1.1
-    WHERE fk_id_evento IN(
-        SELECT id_evento FROM evento
-        WHERE data_hora BETWEEN NOW() AND NOW() + INTERVAL 7 DAY
-    );
