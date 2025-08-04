@@ -11,7 +11,7 @@ module.exports = class eventoController {
         .status(400)
         .json({ error: "Todos os campos devem ser preenchidos" });
     }
-    const query = ` INSERT INTO evento (nome,descricao,data_hora,local,fk_id_organizador) VALUES (?,?,?,?,?)`;
+    const query = ` INSERT INTO evento (nome,descricao,data_hora,local,fk_id_organizador, imagem) VALUES (?,?,?,?,?,?)`;
     const values = [
       nome,
       descricao,
