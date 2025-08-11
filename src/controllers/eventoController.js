@@ -5,13 +5,14 @@ module.exports = class eventoController {
   static async createEvento(req, res) {
     const { nome, descricao, data_hora, local, fk_id_organizador } = req.body;
     const imagem = req.file?.buffer || null;
+    const tipoImagem = req.file?.mimetype || null;
 
     if (!nome || !descricao || !data_hora || !local || !fk_id_organizador) {
       return res
         .status(400)
         .json({ error: "Todos os campos devem ser preenchidos" });
     }
-    const query = ` INSERT INTO evento (nome,descricao,data_hora,local,fk_id_organizador, imagem) VALUES (?,?,?,?,?,?)`;
+    const query = ` INSERT INTO evento (nome,descricao,data_hora,local,fk_id_organizador, imagem, tipo_imagem) VALUES (?,?,?,?,?,?,?)`;
     const values = [
       nome,
       descricao,
@@ -19,6 +20,7 @@ module.exports = class eventoController {
       local,
       fk_id_organizador,
       imagem,
+      tipoImagem
     ];
     try {
       connect.query(query, values, (err) => {
@@ -41,7 +43,7 @@ module.exports = class eventoController {
       if (err || results.lenght === 0 || !results[0].imagem) {
         return res.status(404).send({ error: "Imagem não foi encontrada" });
       }
-      res.set("Content-Type", "image/png")
+      res.set("Content-Type", results[0].tipo_imagem)
       return res.send(results[0].imagem)
     });
   }

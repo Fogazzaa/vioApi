@@ -41,6 +41,7 @@ CREATE TABLE evento (
     local VARCHAR(255) NOT NULL,
     fk_id_organizador INT NOT NULL,
     imagem LONGBLOB,
+    tipo_imagem VARCHAR(100),
     FOREIGN KEY (fk_id_organizador) REFERENCES organizador(id_organizador)
 );
 
