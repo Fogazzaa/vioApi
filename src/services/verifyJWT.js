@@ -6,7 +6,7 @@ function verifyJWT(req, res, next) {
   if (!token) {
     return res
       .status(401)
-      .json({ auth: false, message: "Token não Fornecido" });
+      .json({ auth: false, message: "Token Expirou" });
   }
 
   jwt.verify(token, process.env.SECRET, (err, decoded) => {
