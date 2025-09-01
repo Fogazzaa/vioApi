@@ -168,7 +168,7 @@ module.exports = class userController {
         }
 
         const token = jwt.sign({ id: user.id_usuario }, process.env.SECRET, {
-          expiresIn: "30s",
+          expiresIn: "30m",
         });
 
         delete user.password;
