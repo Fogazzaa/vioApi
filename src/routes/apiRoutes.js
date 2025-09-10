@@ -22,7 +22,7 @@ router.delete("/org/:id_organizador", verifyJWT, orgController.deleteOrg);
 
 router.post("/evento", upload.single("imagem"), eventoController.createEvento);
 router.get("/evento/imagem/:id", eventoController.getImagemEvento)
-router.get("/eventos", verifyJWT, eventoController.getAllEventos);
+router.get("/eventos", eventoController.getAllEventos);
 router.get("/evento/data", verifyJWT, eventoController.getEventosPorData);
 router.get("/evento/:data", verifyJWT, eventoController.getEventosPorData7Dias);
 router.put("/evento", verifyJWT, eventoController.updateEvento);
